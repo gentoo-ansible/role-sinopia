@@ -97,6 +97,6 @@ sinopia_uplinks:
 #             not available locally.
 sinopia_packages:
   '*':
-    access: '$anonymous'
+    access: '$all'
     publish: '$authenticated'
     proxy: npmjs
