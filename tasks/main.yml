@@ -13,7 +13,7 @@
   user: >
     name={{ sinopia_user }}
     group={{ sinopia_group }}
-    home={{ sinopia_data_dir }}
+    home={{ sinopia_base_dir }}
     createhome=no
     system=yes
   tags: accounts
