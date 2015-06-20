@@ -1,0 +1,64 @@
+# {{ ansible_managed }}
+
+# Path to a directory with all packages.
+storage: "{{ sinopia_data_dir }}"
+
+web:
+  title: "{{ sinopia_web_title }}"
+  # logo: logo.png
+  # template: custom.hbs
+
+# A map of authentication plugins with settings.
+auth:
+  {{ sinopia_auth | to_nice_yaml }}
+
+# A map of other known repositories we can talk to.
+uplinks:
+  {{ sinopia_uplinks | to_nice_yaml }}
+
+# A map of packages patterns for managing access.
+packages:
+  {{ sinopia_packages | to_nice_yaml }}
+
+#####################################################################
+# Advanced settings
+#####################################################################
+
+# if you use nginx with custom path, use this to override links
+url_prefix: {{ sinopia_url }}
+
+# A list of addresses the Sinopia should listen on. Address may be a port,
+# optionally with an IP address or domain (ex. 127.0.0.1:4873), or an absolute
+# path of the UNIX socket.
+#
+# Examples:
+#
+#listen:
+# - localhost:4873            # default value
+# - http://localhost:4873     # same thing
+# - 0.0.0.0:4873              # listen on all addresses (INADDR_ANY)
+# - https://example.org:4873  # if you want to use https
+# - [::1]:4873                # ipv6
+# - unix:/tmp/sinopia.sock    # unix socket
+listen:
+  - {{ sinopia_listen }}
+
+# type: file | stdout | stderr
+# level: trace | debug | info | http (default) | warn | error | fatal
+#
+# parameters for file: name is filename
+#  {type: 'file', path: 'sinopia.log', level: 'debug'},
+#
+# parameters for stdout and stderr: format: json | pretty
+#  {type: 'stdout', format: 'pretty', level: 'debug'},
+logs:
+  - { type: file, path: '{{ sinopia_log_path }}', level: {{ sinopia_log_level }} }
+
+# Maximum size of uploaded JSON document.
+# Increase it if you have "request entity too large" errors.
+max_body_size: {{ sinopia_max_body_size }}
+
+# Workaround for countless npm bugs. Must have for npm <1.14.x, but expect
+# it to be turned off in future versions. If `true`, latest tag is ignored,
+# and the highest semver is placed instead.
+#ignore_latest_tag: false

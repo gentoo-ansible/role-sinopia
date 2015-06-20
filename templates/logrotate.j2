@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+
+{{ sinopia_log_path | dirname }}/*.log {
+	missingok
+	compress
+	delaycompress
+	copytruncate
+}

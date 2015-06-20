@@ -1,0 +1,94 @@
+---
+- name: install nodejs
+  portage: package=net-libs/nodejs
+  tags: [ install, packages ]
+
+- name: create sinopia group
+  group: >
+    name={{ sinopia_group }}
+    system=yes
+  tags: accounts
+
+- name: create sinopia user
+  user: >
+    name={{ sinopia_user }}
+    group={{ sinopia_group }}
+    home={{ sinopia_data_dir }}
+    createhome=no
+    system=yes
+  tags: accounts
+
+- name: prepare directories
+  file: >
+    state=directory
+    path={{ item.path }}
+    owner={{ item.owner | default(sinopia_user) }}
+    group={{ item.group | default(sinopia_group) }}
+    mode={{ item.mode | default('0755') }}
+  with_items:
+    - { path: "{{ sinopia_base_dir }}" }
+    - { path: "{{ sinopia_data_dir }}", mode: '0750' }
+    - { path: "{{ sinopia_log_path | dirname }}" }
+    - { path: "{{ sinopia_conf_dir }}", owner: root, group: root }
+  tags: install
+
+- name: install sinopia from npm
+  sudo: yes
+  sudo_user: "{{ sinopia_user }}"
+  npm: >
+    name=sinopia
+    version={{ sinopia_version }}
+    path={{ sinopia_base_dir }}
+  tags: install
+
+- name: install sinopia-ldap from npm
+  sudo: yes
+  sudo_user: "{{ sinopia_user }}"
+  npm: >
+    name=sinopia-ldap
+    version={{ sinopia_ldap_version }}
+    path={{ sinopia_base_dir }}
+  when: sinopia_auth.ldap is defined
+  tags: install
+
+- name: create symlink to sinopia executable
+  file: >
+    state=link
+    src={{ sinopia_base_dir }}/node_modules/sinopia/bin/sinopia
+    dest={{ sinopia_base_dir }}/sinopia
+    force=yes
+  tags: install
+
+- name: configure sinopia
+  template: >
+    src=config.yaml.j2
+    dest={{ sinopia_conf_dir }}/config.yaml
+    owner=root
+    group={{ sinopia_group }}
+    mode=0644
+  notify: restart sinopia
+  tags: config
+
+- name: configure logrotate
+  template: >
+    src=logrotate.j2
+    dest=/etc/logrotate.d/sinopia
+    owner=root group=root mode=0644
+  ignore_errors: yes
+
+- name: install runscript
+  template: >
+    src=runscript.j2
+    dest=/etc/init.d/sinopia
+    owner=root group=root mode=0755
+  notify: restart sinopia
+
+  # Trigger handlers now to avoid unnecessary restarts.
+- meta: flush_handlers
+
+- name: enable and start sinopia
+  service: >
+    name=sinopia
+    enabled=yes
+    state=started
+  tags: services

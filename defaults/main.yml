@@ -1,0 +1,102 @@
+---
+# Version of the sinopia to install.
+sinopia_version: 1.2.2
+
+# Version of the sinopia-ldap to install.
+sinopia_ldap_version: 0.5.1
+
+
+# User to run the Sinopia (will be created if not exist).
+sinopia_user: sinopia
+
+# Group to run the Sinopia (will be created if not exist).
+sinopia_group: "{{ sinopia_user }}"
+
+# Path of the base directory to install Sinopia.
+sinopia_base_dir: /var/lib/sinopia
+
+# Path of the data directory to store packages.
+sinopia_data_dir: "{{ sinopia_base_dir }}/storage"
+
+# Path of the configuration directory.
+sinopia_conf_dir: /etc/sinopia
+
+# Path of the log file.
+sinopia_log_path: /var/log/sinopia/sinopia.log
+
+
+# The address to listen on. It may be a port, optionally with an IP address or
+# domain (ex. 127.0.0.1:4873), or an absolute path of the UNIX socket prefixed
+# with 'unix:' (ex. unix:/run/sinopia/sinopia.sock).
+sinopia_listen: 'localhost:4873'
+
+# Complete HTTP(S) URL on which the Sinopia should be accessible.
+sinopia_url: "http://{{ inventory_hostname }}"
+
+# Title of the web page.
+sinopia_web_title: Sinopia
+
+# Maximum size of uploaded JSON document.
+# Increase it if you have "request entity too large" errors.
+sinopia_max_body_size: 1mb
+
+# Possible values are: trace, debug, info, http, warn, error, fatal.
+sinopia_log_level: http
+
+# A map of authentication plugins with settings.
+#
+# LDAP example:
+#   sinopia_auth:
+#     ldap:
+#       type: ldap
+#       groupNameAttribute: 'cn'
+#       client_options:
+#         url: "ldaps://ldap.example.org:636"
+#         adminDn: "cn=admin,dc=example,dc=com"
+#         adminPassword: "admin"
+#         searchBase: "ou=people,dc=example,dc=com"
+#         searchFilter: "(uid={{username}})"
+#         cache: false
+#         searchAttributes:
+#           - "*"
+#           - memberOf
+#         tlsOptions:
+#           rejectUnauthorized: false
+sinopia_auth:
+  htpasswd:
+    file: "{{ sinopia_conf_dir }}/htpasswd"
+
+# A map of other known repositories we can talk to.
+#
+# A key is the registry symbolic name, a value is a map of:
+#   url          : URL of the remote repository (required).
+#   timeout      : Amount of time to wait for repository to respond before
+#                  giving up and use the local cached copy (default: 30s).
+#   maxage       : Maximum time in which data is considered up to date. Default
+#                  is 2 minutes, so server won't request the same data from
+#                  uplink if a similar request was made less than 2 minutes ago.
+#   max_fails    : If two subsequent requests fail, no further requests will be
+#                  sent to this uplink for five minutes (default: 2).
+#   fail_timeout : Timeouts are defined in the same way as nginx, see:
+#                  http://wiki.nginx.org/ConfigNotation (default: 5m).
+sinopia_uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+# A map of packages patterns for managing access (default: authenticated
+# publish, anonymous access).
+#
+# A key is the name pattern, a value is a map of:
+#   access  : Who can read packages? You can specify usernames/groupnames
+#             (depending on your auth plugin) and three keywords: "$all",
+#             "$anonymous", "$authenticated".
+#   publish : Who can publish packages? Accepts the same values as the 'access'
+#             option.
+#   storage : To override storage directory for a group of packages.
+#   proxy   : Name of the remote registry to proxy requests to if package is
+#             not available locally.
+sinopia_packages:
+  '*':
+    access: '$anonymous'
+    publish: '$authenticated'
+    proxy: npmjs

@@ -1,0 +1,27 @@
+#!/sbin/runscript
+
+name="Sinopia"
+description="Sinopia is a private npm repository server."
+
+: ${sinopia_user:={{ sinopia_user }}}
+: ${sinopia_home:={{ sinopia_base_dir }}}
+: ${sinopia_conf:={{ sinopia_conf_dir }}/config.yaml}
+: ${pidfile:=/run/sinopia/sinopia.pid}
+
+command="${sinopia_home}/sinopia"
+command_args="--config $sinopia_conf"
+command_background=true
+
+start_stop_daemon_args="
+	--chdir $sinopia_home
+	--user $sinopia_user"
+
+required_files="$sinopia_conf"
+
+depend() {
+	use net
+}
+
+start_pre() {
+	checkpath -d -o $sinopia_user -m755 "$(dirname "$pidfile")"
+}
