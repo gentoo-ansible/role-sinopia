@@ -96,7 +96,7 @@ sinopia_uplinks:
 #   proxy   : Name of the remote registry to proxy requests to if package is
 #             not available locally.
 sinopia_packages:
-  '*':
+  '**':
     access: '$all'
     publish: '$authenticated'
     proxy: npmjs
